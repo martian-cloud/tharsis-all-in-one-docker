@@ -1,0 +1,53 @@
+stages:
+  - publish
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      when: always
+    - when: never
+
+variables:
+  GO_VERSION: "1.18.2"
+  KEYCLOAK_VERSION: "20.0.2"
+
+default:
+  tags:
+    - oss
+  retry:
+    max: 2
+    when:
+      - unknown_failure
+      - api_failure
+      - stuck_or_timeout_failure
+      - runner_system_failure
+
+publish all-in-one docker:
+  image: docker:latest
+  services:
+    - docker:dind
+  stage: publish
+  tags:
+    - oss
+    - docker
+  before_script:
+    - apk add git
+  script:
+    - |
+      # Build registry URIs.
+      registry_uri="$CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME"
+
+      docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+
+      echo "Cloning tharsis-api repository"
+      git clone https://gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-api.git
+
+      # Do everything from tharsis-api directory.
+      cd tharsis-api || exit 1
+      mkdir -p all-in-one && cp ../Dockerfile ../supervisord.conf all-in-one
+
+      echo "Building tharsis all-in-one docker image"
+      docker build -f all-in-one/Dockerfile -t $registry_uri:latest --build-arg goversion=$GO_VERSION --build-arg kcversion=$KEYCLOAK_VERSION --no-cache .
+
+      echo "Tagging and pushing image as latest"
+      docker image push $registry_uri:latest
