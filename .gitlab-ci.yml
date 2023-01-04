@@ -8,7 +8,6 @@ workflow:
     - when: never
 
 variables:
-  GO_VERSION: "1.18.2"
   KEYCLOAK_VERSION: "20.0.2"
 
 default:
@@ -30,8 +29,6 @@ publish all-in-one docker:
   tags:
     - oss
     - docker
-  before_script:
-    - apk add git
   script:
     - |
       # Build registry URIs.
@@ -39,15 +36,8 @@ publish all-in-one docker:
 
       docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
 
-      echo "Cloning tharsis-api repository"
-      git clone https://gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-api.git
-
-      # Do everything from tharsis-api directory.
-      cd tharsis-api || exit 1
-      mkdir -p all-in-one && cp ../Dockerfile ../supervisord.conf all-in-one
-
       echo "Building tharsis all-in-one docker image"
-      docker build -f all-in-one/Dockerfile -t $registry_uri:latest --build-arg goversion=$GO_VERSION --build-arg kcversion=$KEYCLOAK_VERSION --no-cache .
+      docker build -t $registry_uri:latest --build-arg kcversion=$KEYCLOAK_VERSION --no-cache .
 
       echo "Tagging and pushing image as latest"
       docker image push $registry_uri:latest
