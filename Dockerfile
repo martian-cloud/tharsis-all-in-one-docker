@@ -1,15 +1,4 @@
-ARG goversion
-
-FROM golang:${goversion}-alpine AS builder
-RUN apk add build-base git
-ADD go.mod /app/go.mod
-RUN cd /app && go mod download
-ADD . /app
-WORKDIR /app
-RUN make build-api
-
-# Second stage.
-FROM alpine:latest AS tharsis-base
+FROM registry.gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-api/api:latest AS tharsis-base
 ARG kcversion
 
 ENV KC_VERSION ${kcversion}
@@ -40,7 +29,7 @@ RUN curl -fSsL -o /opt/minio https://dl.min.io/server/minio/release/linux-amd64/
 
 # Configure supervisor.
 RUN mkdir -p /var/log/supervisor
-COPY all-in-one/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Configure Keycloak.
 RUN cd /tmp || exit 1 && \
@@ -53,9 +42,8 @@ RUN cd /tmp || exit 1 && \
     chown -R keycloak: /opt/keycloak && \
     chmod o+x /opt/keycloak/bin/
 
-COPY --chown=keycloak:keycloak docker-compose/tharsis-realm.json /opt/keycloak/data/import/tharsis-realm.json
+COPY --chown=keycloak:keycloak tharsis-realm.json /opt/keycloak/data/import/tharsis-realm.json
 
 WORKDIR /app/
-COPY --from=builder /app/apiserver .
 EXPOSE 8000 8080
 CMD ["/usr/bin/supervisord","-c", "/etc/supervisor/conf.d/supervisord.conf"]
