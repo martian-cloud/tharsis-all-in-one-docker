@@ -1,4 +1,5 @@
-FROM registry.gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-api/api:latest AS tharsis-base
+ARG image_tag=latest
+FROM registry.gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-api/api:${image_tag} AS tharsis-base
 ARG kcversion
 
 ENV KC_VERSION ${kcversion}

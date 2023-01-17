@@ -36,8 +36,12 @@ publish all-in-one docker:
 
       docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
 
+      if [ -z "$IMAGE_TAG" ]; then
+        IMAGE_TAG=latest
+      fi
+
       echo "Building tharsis all-in-one docker image"
-      docker build -t $registry_uri:latest --build-arg kcversion=$KEYCLOAK_VERSION --no-cache .
+      docker build -t $registry_uri:latest --build-arg image_tag=$IMAGE_TAG --build-arg kcversion=$KEYCLOAK_VERSION --no-cache .
 
       echo "Tagging and pushing image as latest"
-      docker image push $registry_uri:latest
+      docker image push $registry_uri:$IMAGE_TAG
