@@ -1,5 +1,13 @@
 ARG image_tag=latest
+ARG goversion
 FROM registry.gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-api/api:${image_tag} AS tharsis-base
+
+FROM golang:${goversion}-alpine as base
+
+WORKDIR /app
+
+COPY --from=tharsis-base /app/apiserver .
+
 ARG kcversion
 
 ENV KC_VERSION ${kcversion}
