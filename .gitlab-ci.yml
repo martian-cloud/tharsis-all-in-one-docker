@@ -9,6 +9,7 @@ workflow:
 
 variables:
   KEYCLOAK_VERSION: "20.0.2"
+  GO_VERSION: "1.18.2"
 
 default:
   tags:
@@ -41,7 +42,7 @@ publish all-in-one docker:
       fi
 
       echo "Building tharsis all-in-one docker image"
-      docker build -t $registry_uri:$IMAGE_TAG --build-arg image_tag=$IMAGE_TAG --build-arg kcversion=$KEYCLOAK_VERSION --no-cache .
+      docker build -t $registry_uri:$IMAGE_TAG --build-arg image_tag=$IMAGE_TAG --build-arg goversion=$GO_VERSION --build-arg kcversion=$KEYCLOAK_VERSION --no-cache .
 
       echo "Tagging and pushing image as latest"
       docker image push $registry_uri:$IMAGE_TAG
