@@ -46,7 +46,7 @@ ENV MINIO_CONSOLE_ADDRESS :9010
 
 # Install dependencies.
 RUN apk update && apk upgrade && \
-    apk add curl bash postgresql supervisor && \
+    apk add curl bash postgresql supervisor git && \
     apk add openjdk11 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community \
     --no-cache
 
